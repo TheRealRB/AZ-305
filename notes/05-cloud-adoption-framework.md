@@ -149,3 +149,69 @@ Assess code to identify compatibility and modernization opportuntities: AppCAT f
  - resource groups can't be renamed
   
  ### Considerations
+ - consider group by type
+ - consider group by app
+ - consider group by department, location (region), and group by billing
+ - consider resource life cycle
+ - consider administrative overhead
+ - consider resource access control
+ - consider compliance requirements
+  
+## Resource Tags
+ - 50 tags max per resource
+ - name-value pair. one to one relationship. (Cost Center = 10200)
+ - resource tags can be added, modified, and deleted. These actions can be done with PowerShell, Azure CLI, ARM templates, REST API, or Azure Portal
+ - tags can be applied to a resource group. However, tags applied to a resource group aren't inherited.
+ - consider your organization's taxonomy
+ - consider whether you need IT-aligned or business-aligned tagging
+ - resource tags generally fall into fix categories:
+  1) functional
+  2) classification
+  3) accounting
+  4) partnership
+  5) purpose
+ - consider using Azure Policy to apply tags and enforce tagging rules and conventions
+ - consider which resources require tagging
+   
+## Azure Policy
+ - groups of policies are called initiatives.
+ - Azure Policy comes with many built-in policy and initiative definitions
+ - policies are inherited down the hierarchy
+ - policy evaluates all resources in Azure and Arc-enabled resources (Arc-enabled resources are those outside of Azure that are represented through Arc servers. e.g. AWS resources, on-prem servers)
+ - policy highlights non-compliant resources
+ - policy can block non-compliant resources from being created and also remediate non-compliant resources.
+ - policy integrates with Azure Pipeplines by applying predeployment and post-deployment policies.
+ - consider using Azure Policy compliance dashboard
+ - consider when Azure Policy evaluates resoures. Triggers for evaluation:
+  1) a resource is created, deleted, or updated within a policy scope
+  2) a policy or initiative is newly assigned to a scope
+  3) an assigned policy or initiative for a scope is updated
+  4) the standard compliance evaluation cycle (occurs once every 24 hours)
+ - consider how to handle a noncompliant resource
+  1) deny changes
+  2) log changes
+  3) alter the resource before or after the change
+  4) deploy related compliant resources
+ - consider when to automatically remediate noncompliant resources (think tagging)
+ - consider how Azure Policy is different from role-based access control (RBAC)
+  
+## Role-based access control (RBAC)
+ - RBAC is an 'allow model' meaning RBAC allows the user to perform the actions associated with the role.
+ - consider the highest scope level for each requirement
+ - consider the access needs for each user
+ - consider adding roles to groups, and not to users
+ - consider when to use Azure policies
+ - consider when to create a custom role
+ - consider how to resolve overlapping role assignments
+   
+# Azure Landing Zones
+- an Azure landing zone consists of a platform landing zone and one or more application landing zones. The platform landing zone hosts shared servcies (identity, connectivity, and management subscriptions) managed by a central team.
+- Azure policies are associated with landing zones to ensure continued compliance with the organizational platform.
+- landing zones are pre-provisioned through code (IaC; bicep, terraform)
+- Azure landing zone IaC accelerator is the recommended way deploy. It uses bicep or Terraform via Azure Verified Modules (AVM) to automate deployment.
+- consider using landing zones through code (IaC)
+- consider using the accelerator
+- consider focusing on your apps
+- consider using Azure native platform services and capabilities
+- consider scoping for both migrations and green field situations
+- consider transitioning existing architectures to Azure landing zones
