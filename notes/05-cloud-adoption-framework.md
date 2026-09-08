@@ -215,3 +215,39 @@ Assess code to identify compatibility and modernization opportuntities: AppCAT f
 - consider using Azure native platform services and capabilities
 - consider scoping for both migrations and green field situations
 - consider transitioning existing architectures to Azure landing zones
+  
+# Identity and Access Management (IAM)
+- Entra B2B (Business to Business)
+  1) invite guest users to collaborate with your Entra ID users.
+  2) guest users get guest profiles in your Entra ID directory. Guest accounts are annotated as guests.
+  3) can be added to same groups as your Entra users
+  4) authenticated by their company's IAM; not yours
+  5) you can use your own (single) branding on your UI
+- Entra External ID (formerly Azure AD B2C)
+  1) separate Entra ID directory / Tenant (separate from your enterprise/corporate Entra ID; you manage both)
+  2) not visible to your main Entra ID users
+  3) branding is fully customizable per app or org
+
+# Conditional Access
+- use to allow or deny access to resources
+- MFA supports granular control. You can use MFA selectively and for certain users only
+- Entra ID allows named locations to be used with app policies to control access. Named locations can be known networks or geographic locations
+- can restrict to client apps only
+- untrusted sources can be blocked, such as sources from an unknown or unexpected location
+- report-only mode lets admins evaluate the impact before enabling the settings
+- The What If tool helps you plan and troubleshoot Conditional Access policies
+- Requires a P1 or P2 license or Business Premium license
+- consider policies to handle compromised accounts:
+  1) require all users to use MFA
+  2) require a password change for users who are high-risk
+  3) require MFA for users with medium or high sign-in risk
+- can use to block all users from signing in to the tenant; useful during migrations or upgrades
+- can block legacy authentication protocols
+- consider using the Conditional Access Optimization Agent: an AI-powered agent that monitors policy gaps and recommends fixes. Requires P1 license + Security Copilot SCUs.
+  
+# Identity Protection
+- identity protection can identify risk signals, which conditional access can use to make decisions, and identity protection can forward the risk data to your SIEM for investigation
+- consider setting the user risk policy level to HIGH, per Microsoft recommendations
+- consider setting the sign-in risk policy level to MEDIUM and Above per Microsoft, as this setting supports Identity Protection self-remediation options. These are less-impactful compared to blocking users.
+- 
+
