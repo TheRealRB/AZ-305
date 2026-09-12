@@ -249,5 +249,159 @@ Assess code to identify compatibility and modernization opportuntities: AppCAT f
 - identity protection can identify risk signals, which conditional access can use to make decisions, and identity protection can forward the risk data to your SIEM for investigation
 - consider setting the user risk policy level to HIGH, per Microsoft recommendations
 - consider setting the sign-in risk policy level to MEDIUM and Above per Microsoft, as this setting supports Identity Protection self-remediation options. These are less-impactful compared to blocking users.
-- 
-
+  
+# Access Review
+- Entra access review is a planned review of the access needs, rights, and history of user access
+- mitigate risk by protecting, monitoring, and auditing access to critical assets
+- verify group memberships that are syncronized to Entra ID, or created in Entra ID / M365
+- check access packages (bundled app access to make provisioning easier)
+  
+# Service Principals for Applications
+- user principal (user) & service principal (app)
+- application object is an AD object that defines the appliation and its details such as authentication method(s)
+- an app can have at most, one app object, which is registered in a home direct.
+- an app can have many service principals.
+- a service principal for an app is the instance of the app. Service Principals are simliar to user accounts and the app runs under the SP account.
+- three types of service principals
+  1) application
+  2) managed identity - Azure manages the credentials
+  3) Legacy
+- a service principal must be created in each tenant where the app will be used
+- you can create a service principal object using Azure PowerShell, CLI, Graph, and other tools.
+  
+# Managed Identities
+- free of charge
+- automatically rotates and manages credentials
+- you can assign RBAC with the managed identity account
+- two types:
+  1) system-assigned
+  2) user-assigned
+- can be used to access key vault during app runtime
+  
+# Key Vault
+  1) manage secrets
+  2) manage keys
+  3) manage certificates
+- Standard Tier - encrypt with software key
+- Premium Tier - encrypt with hardware security module (HSM) protected keys
+- logged and monitored
+- policy can restrict secret access
+- consider using separate key vaults. grouping secrets into the same vault increases the blast radius of a security event.
+- consider using soft delete to roll back if accidentily deleted of the key vault
+- consider using purge protection - protect against deletion by a malicious insider.
+  
+# Azure Monitor data sources
+- common monitoring platform to view, analyze, and work with data gathered from your resources
+ 1) Azure monitor logs - collect and organize data from resource
+ 2) Azure monitor metrics - capture numerical data from monitored resources and stores the results in a time-organized database.
+- analyze logs with log queries
+- metrics support near-real-time scenarios like alerting and responding to critical issues
+- monitoring data can be sent to other locations for tracking and reporting
+- sources of monitoring can be organized into tiers starting from the highest tiers for apps and lower tiers being the components of Azure platform.
+- Azure collects data using Data Collection Rules (DCRs)
+- Azure Monitor Agent (AMA) uses DCRs to collect:
+ 1) windows events
+ 2) performance counters
+ 3) syslog
+ 4) IIS logs
+ 5) custom logs (text and JSON)
+- Kusto Query Language (KQL) is used to analyze your collected data
+- consider setting up alerts based on logs and metrics data
+- create DCRs and assign them to your VM and hybrid machines using resource association. Use Azure Policy to enforce DCR assignment at scale.
+- use Metrics Explorer to analyze metrics interactively.
+  
+# Azure Monitor logs (Log Analytics) workspaces
+- data in Azure Monitor Logs workspaces is organized into tables.
+- configure billing and retention for each workspace; use fixed daily rates, or pay-as-you-go with an optional daily cap.
+- use RBAC to control users and groups with least security
+- workspaces are hosted on physical clusters. clusters are (by default) automatically created and managed. Dedicated clusters are available for specific requirements such as Customer Lockbox or CMK encryption.
+  
+# Azure Workbooks and Azure Insights
+- combine multiple data sources into a unified interactive experience
+- transform ingested data to provide insights into the availability, performance, usage, and overall health of components
+- analyze performance logs of VMs to identify high CPU or low memory instances
+- Azure Insights provides customized monitoring for particular apps and services
+- Azure Insights collects and analyzes both logs and metrics
+  
+# Azure Data Explorer
+- data exploration service for log and telemetry data
+- can handle multiple data streams
+- analyze large volumes of diverse data from any data source (websites, apps, IoT devices, and more)
+- use ADE for diags, monitoring, reporting, Machine Learning, and other analytics tasks
+  
+# Backup for Disaster Recovery
+- on-prem : files, folders, system state with Microsoft Azure Recovery Services (MARS) agent. use System Center Data Protection (SCDP) or Azure Backup Server (MABS) agent to protect on-prem VMs.
+- backup entire Windows or Linux VMs (using backup extensions)
+- Azure Files backup to a storage account
+- backup SQL server databases running on Azure VMs
+- backup SAP HANA databases running on Azure VMs
+  
+- Azure backup organizes backup data into a vault. A vault stores backup copies, recovery points, and backup policies. Two types of vaults.
+  1) Azure Backup Vault - used with Azure Backup only
+  2) Azure Recovery Services Vault - can be used by Azure Backup or Azure Site Recovery
+- consider Azure Policy to apply consistent policy across all your vaults
+- consider using more than one vault, to separate prod & dev, organize by region
+- consider using RBAC to secure your vaults
+- consider redundancy for your vaults. LRS to protect against failure in a datacenter. ZRS to replicate data across zones in the same region. GRS to protect against region-wide outages.
+- consider using Resource Guard to require approval from another user for important backup actions. Add MFA to increase security.
+- consider centralized management of all your vaults with Resiliency in Azure.
+  
+# Azure Blob Backup
+- soft delete at container level protects the entire container and all blob contents
+- soft delete at blob level protects deletion of individual blobs, snapshots, versions for a retention period
+- blob versioning allows you to roll back to previous versions (recall NetApp single item rollback through Windows previous version feature)
+- operational backup for blobs provides continuous backup. You don't have to schedule any backups.
+- operational backup stores data in the storage account, NOT a vault
+  
+# Azure Files Backup and Recovery
+- share snapshots capture the share state at that specific point in time
+- snapshots can be created manually by using Azure portal, REST API, client libraries, CLI, and PowerShell
+- snapshots can be automated with Azure Backup and backup policies
+- retrieval/restore can be at the individual file level
+- snapshots are incremental; only change deltas stored
+- you can't delete a share than contains snapshots, you must delete the snapshots first
+- two methods for backing up file shares:
+  1) vaulted backup stores backup data in a vault, supports retention up to 10 years. This is the recommended appraoch for comprehensive data protection.
+  2) snapshot backup creates snapshots that are stored locally within the storage account and are managed via Recovery Services vault metadata. Faster for restores but cannot protect against storage account deletion or ransomware because the snapshots live INSIDE the same storage account.
+    - azure backup keeps metadata about the snapshots in the Recovery Services vault, but not the actual data or changes.
+    - you can configure snapshots for daily, weekly, monthly, or yearly retention
+- consider instant restore - snapshots
+- consider alerts and reporting on failures
+- Azure backup uses server endpoint Windows Volume Shadow Copy Service (VSS) snapshots. You can configured the ability to self-restore to users (advanced/super users)
+  
+# Azure Virtual Machine Backup and Recovery
+- Azure backup allows for simple configuration scaling for Windows and Linux VMs.
+- Azure VM backup offers two policy types:
+  1) standard policy - once a day backup with standard snapshot storage. (does not support Trusted Launch VMs, Ultra Disks, Premium SSD v2)
+  2) enhanced policy - supports backups as frequently as every 4 hours, ZRS snapshots, newer disk types: Ultra Disks, Premium SSD v2. Supports Trust Launch Vms.
+- VM backup process is first a VM snapshot is taken and stored locally, then the snapshot is transferred to Recovery Services vault for longer term storage. In the vault, the backup recovery points are managed through the vault.
+- VM backups are encrypted at rest with Storage Service Encryption (SSE)
+- consider during VM restores that too much data can be throttled. consider splitting your VM restores out with separate storage accounts, one for each VM restore
+- consider Cross Region Restore (CRR) - restore VMs in a secondary region (Azure paired region). CRR works with VMs, SQL databases, and SAP HANA databases.
+  
+# Azure SQL Backup and Recovery
+- automated backups of SQL Database and SQL Managed Instance with SQL backup technology
+ 1) full backups once a week
+ 2) differential backups every 12-24 hours
+ 3) transaction log backups every 5 to 10 minutes
+- restore a database to a point in time in the past
+- restore a deleted database to time of deletion
+- restore a database to another geographic region
+- restore a database from a long-term backup
+- SQL Database automatic backups are kept for 35 days.
+  - for longer retention use the long-term retention (LTR) feature to keep backups in Azure Blob Storage for up to 10 years
+  
+# Azure Site Recovery
+- replicate Azure VMs for failover to secondary region
+- replicate on-premises VMs to Azure or a secondary on-premises datacenter
+- replicate workloads
+- automate BCDR tasks like automated periodic test failovers
+- ASR provides continuous replication with frequency as low as 30 seconds for Hyper-V
+- use app-consistent snapshots which capture disk data, memory data, and all in-process transactions
+- run DR tests without affecting ongoing replication
+- groups VMs, add scripts and manual actions, integrate recovery plans with Azure Automation runbooks
+  
+# High Availability and Disaster Recovery
+- Recovery Time Objective (RTO) - maximum time available to bring resources online
+- Recovery Point Objective (RPO) - maximum amount of data loss that the business is willing to accept
+- Iaas versus PaaS - 
