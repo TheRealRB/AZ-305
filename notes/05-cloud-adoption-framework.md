@@ -404,4 +404,193 @@ Assess code to identify compatibility and modernization opportuntities: AppCAT f
 # High Availability and Disaster Recovery
 - Recovery Time Objective (RTO) - maximum time available to bring resources online
 - Recovery Point Objective (RPO) - maximum amount of data loss that the business is willing to accept
-- Iaas versus PaaS - 
+- IaaS versus PaaS - 
+  - IaaS, you are responsible for the OS and the installation of apps and databases; along with that the configurations and HADR solutions.
+  - PaaS, the service is managed by Azure along with the HADR solution (built-in)
+- Failover Cluster Instance (FCI) - for Azure FCI, an internal load balancer (ILB) is required
+  1) FCI requires shared storage; Premium file share, iSCSI, Azure Shared Disk, Storage Spaces Direct (S2D), or 3rd party solution like Sios DataKeeper.
+  2) FCI on Standard Edition of SQL Server can have max 2 nodes
+  3) FCI on Azure requires AD DS and DNS implemented in Azure.
+- Availability Groups (AGs) provides a primary and up to 8 secondary replicas (Enterprise SQL)
+  1) each replica maintains a full copy of database
+  2) replication can be sync or async
+  3) secondary replicas can be configured to offload tasks from the primary. example backups or read-only mode
+  4) AGs use a listener for abstraction which functions like the unique name assigned to a FCI.
+    
+- Log Shipping
+  1) database level protection
+  2) take a full backup of primary and restore it to a secondary server in loading state (STANDBY or NORECOVERY) - this is known as warm standby or secondary database
+  3) primary then backs up transaction logs and copies the backup to the secondary server nad restores it onto the standby
+  
+- Azure High Availability for IaaS
+  1) Availability Sets - logical grouping of resources with anti-affinity rules to provide separation by fault domains (rack failures) and update domains (update groups)
+  2) Availability Zones - separate resources across datacenters in same region (zones 1, 2, 3)
+  3) Azure Site Recovery - replication to another region to provide failover (RTO 2 hours)
+  
+- PaaS options for HADR
+  1) database availability - Accelerated Database Recovery (ADR) is built in. The transaction log is truncated aggressively and a persisted version store (PVS) is used. This allows instant transaction rollback. ADR is on by default and can not be disabled.
+  2) database consistency - regular backup and restore checks are run. multiple copies of your data and backups exist both locally and across regions. CHECKSUM is on by default. Automatic page repair is on. Detection for lost write and stale read is in place.
+
+- IaaS options for HA (SQL running on your VMs)
+  1) Always on availability groups (high availability)
+    1) no shared storage
+    2) works well with patching/updating
+    3) apps can access both primary and secondary replicas
+  2) Always on Failover Cluster Instance
+    1) works well with patching/updating
+    2) easy, standardized method for apps to access the clustered instance of SQL server
+- IaaS options for DR
+  1) Multi-region or Hybrid Always on Availability Group
+    1) AG is stretched across datacenters in different regions
+    2) requires AD DS and DNS to be running in each region and on-premises (hybrid)
+    3) HA and DR protection
+  2) distributed availability group
+    1) enterprise edition feature of SQL
+    2) primary replica is known as the Global Primary it has a secondary replica server in its AG.
+    3) the primary replica in the second AG is known as a FORWARDER and keeps the secondary replicas in sync.
+    4) there are two AGs and these are bound into another AG. AG of AGs.
+    5) separates out the WSFC (Windows cluster) as a single point of failure if all nodes lose communication
+    6) one primary isn't syncronizing all replicas, it syncs the Forwarder and offloads the remote replicating there.
+    7) provides failback from one location to another.
+  3) log shipping
+    1) tried and true feature that has been around for over 20 years
+    2) easy to deploy and administer
+    3) log shipping is tolerant of networks that aren't robust
+    4) log shipping meets more RTO and RPO goals for DR
+    5) log shipping is a good way to protect FCI because the logs are transmitted to another location for protection.
+    6) during failure, still will lose some data as it doesn't finish committing to the log (assumption)
+  4) Azure Site Recovery (ASR)
+    1) works with any server, VMs, etc
+    2) replicates the server to another location
+    3) part of Azure platform
+  5) Hybrid Solutions
+    1) hybrid solutions are IaaS based since they rely on traditional infrastructure.
+    2) a big constraint is connecting the network to on-Premise. ExpressRoute is one solution to help with latency/bandwidth.
+
+# Design for Azure SQL Database
+- Azure SQL Database is highly scalable
+- large databases up to 128 TB or autoscaling for unpredictable workloads (serverless)
+- elastic database pool - all databases in the pool share the same pool of resources
+- two pricing options:
+  1) DTU (Database Transaction Unit): simple, preconfigured, blended measure of CPU, mem, reads, writes
+  2) vCore: flexible, you control, transparent, independent scaling of compute, storage, I/O resources
+- serverless, available for General Purpose or Hyperscale databases, automatically scales compute and charges for what you use. Hyperscale also supports large storage.
+- Azure Hybrid Benefits, a licensing mode that allows you to use your existing on-prem SQL licenses to allocate Azure Databases in the vCore cost plan.
+- Azure SQL Database (fully managed instances) has the highest industry uptime.
+- free offer for lifestime of subscription: 10 Generate Purpose single databases, each with 100,000 vCore seconds of compute per month. Good for dev
+- reserved capacity allows you to pre-pay for a chunk in advance for a lower price
+- consider serverless option for single database, scales compute automatically, and only pay as you consume
+- elastic pool allows grouped databases to share shifting resource demands within the pooled amount configured.
+  
+# Design for Azure SQL Managed Instance
+- good for lift and shift migrations to Azure without having to redesign apps
+- good for customers with instance-scoped features: SQL Server Agent, Common Language Runtime (CLR), Database Mail, Distributed Transactions, Machine Learning Services
+- uses vCore mode
+- includes almost all features of SQL Server
+- Azure managed patching, updates, backups, HA
+- use Azure AD and AD Connect to sync on-prem identities to Azure
+- single instance or instance pool
+- free instance for 12 months after creation - good for evaluation, validate compatibility before migration
+- upgrade to Next-gen General Purpose for more capacity: 500 databases for instance, 32 TB of storage, can scale resources independently. same baseline cost for Next Gen as General Purpose. Difference is you can scale different areas, which in turn could cost more with consumption (I/O)
+  
+# Design for SQL Server on VMs
+- access to full capabilities of SQL Server since you control the server on the VM
+- you are responsible for version updates, patching for OS and SQL Server
+- features like SSAS, SSRS, SSIS
+- can leverage Azure backups, security updates, Point-in-time restores, accelerated storage performance with Azure Blob Caching
+- leverage Azure Hybrid Benefit licensing
+  
+# Database Scalability
+- vertical scaling - scale compute up or down. elastic database pools allow you to allocate resources for when your pooled databases needs them
+- horizontal scaling - add or remove databases by using sharding to partition data or read scale-out provisioning.
+- elastic pools:
+  1) basic - up to 5 eDTUs per database
+  2) standard - up to 100 eDTUs per database
+  3) premium - up to 1000 eDTUs per database
+- elastic tools and elastic query are capable of performing functions across multiple databases in Azure SQL Database
+
+# Database Availability
+- General Purpose Tier - for common workloads, budget oriented balance, backup files replicated (RA-GRS, LRS, ZRS)
+- Business Critical / Premium Tier - highest resilience to failures by using several isolated replicas. Backups are replicate (LRS, ZRS, RA-GRS) and logs 
+- Hyperscale Tier - designed for very large OLTP databases (100 TB), autoscale storage and compute, snapshot backups, scales up or down in realtime, restores in minutes
+- Azure SQL is built on Azure Service Fabric
+
+# Security for data at rest, data in motion, and data in use
+- rest = stored. Transparent data encryption (DTE) always encrypted
+- motion = in transit. Transport Layer Security (TLS 1.2 or higher) always encrypted
+- process = open and being changed. Dynamic data masking. specific data is unencrypted, remaining data is encrypted.
+  
+# Azure Cosmos DB and Table Storage
+- Azure Cosmos DB is fully managed NoSQL database service
+- relational data = SQL
+- semi-structured data, schema-on-read = CosmosDB SQL
+- apps written for Table Storage can migrate to Cosmos DB for Table with few code changes
+- CosmosDB has multiple APIs that allow you to use many 3rd party DB formats (MySQL, PostgreSQL, MariaDB, Cassandra, MongoDB) inside CosmosDB. Move the data to Azure CosmosDB and use the API so don't have to change much in your app.
+- available globally
+- consumption based pricing model
+- SLA is 99.99% availability
+
+# Design for Storage
+- Blob Storage - unstructured data, often images and multimedia files
+- Azure Files - fully managed file shares with SMB, NFS and REST API access
+- Azure Managed Disks - acts like physical disks, think disks for VMs
+- Azure Queue Storage - store large number of messages, commonly used to create a backlog of work to process async.
+  
+# Storage Accounts
+- groups together all your storage under a unique namespace that is accessible globally via HTTPS. massively scalable, protected, secure, HA
+- collection of settings for your storage: location, replication strategy, subscription owner
+  1) standard general purpose v2 - blob storage, data lake, queue storage, table storage, azure files, disks (page blobs)
+  2) premium block blobs - blob storage, data lake, high transaction rate, smaller objects
+  3) premium file shares - file shares (smb, nfs) for enterprise or high-performance scale apps
+  4) premium page blobs - high-performance account for page blobs. idea for data disks, OS, databases
+  
+# Data Redundancy
+- redundancy is acheived by replicating data to a primary region
+- storage accounts have a primary region
+- primary region supports LRS or ZRS
+- replication can be done for a secondary region. region-pairs. GRS and GZRS.
+
+# Storage for Blob
+- Hot tier = 99.9% availability
+- Cool tier - 99.0% availability
+- Cold tier - 99.0% availability
+- Archive tier - 99% availability
+- immutable storage - WORM (Write Once Read Many) state. Data can't be modified or deleted for a user-specific interval.
+  1) time-based retention policies
+  2) legal hold policies
+  
+# Azure Files
+- direct mount of file shares (serverless)
+- cache Azure file shares on-premises with Azure File Sync
+- four tiers of storage
+  1) premium - SSD drives, high performance, low-latency
+  2) transaction optimized (standard storage hardware)
+  3) hot access tier (standard storage hardware)
+  4) cool access tier - cost-efficient storage optimized for online arhive storage scenarios.
+  
+# Azure Managed Disks
+- several types of managed disks
+  1) Ultra-disk (SSD IO intensive) *not avail in all regions
+  2) Premium SSD v2 (SSD Prod Performance, high IOPS, low latency) *not avail in all regions
+  3) Premium SSD (SSD Prod Perf)
+  4) Standard SSD (SSD Web servers, dev/test)
+  5) Standard HDD (backup, non-critical, infrequent access) *retiring on September 8, 2028
+- several types of encryption for managed disks
+  1) Azure Disk Encryption (ADE) - encrypts VMs so only the VM that owns the disk can access it
+  2) Server-Side Encryption (SSE) - physical disks in the datacenter are encrypted (encryption at rest)
+  3) Encryption at Host - the server hosting your VM provides the encryption.
+ 
+#  Storage Security
+- SAS - shared access signatures (access tokens)
+- firewall policies and rules
+- secure transfer rejects any request originating from nonsecure connections *default on
+- data is automatically encrypted: two ways to manage encryption keys at the storage account level:
+  1) Microsoft-managed keys
+  2) Customer-managed keys (CMK) - stored in key vault
+  
+## Data Integration
+-
+
+
+
+
