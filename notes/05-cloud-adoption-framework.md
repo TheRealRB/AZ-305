@@ -662,4 +662,42 @@ Assess code to identify compatibility and modernization opportuntities: AppCAT f
 - doesn't store data, just analyzes the stream in-memory
 - no code, no install, drag and drop apprach that complements the SQL query language
   
-
+# Choose Compute Service
+- serverless means no server to manage, Azure manages it and you just worry about the services it provides. usually also means that you don't RDP or SSH into a server to manage the services although there might be a mini-shell
+- VMs/IaaS is full control of OS and VM resources. you manage, patch, update
+- Azure Batch - large-scale parallel and high-performance computing (HPC) applications. *keywords: batch, parallel, jobs, large # of tasks
+- Azure App Service - host web apps, mobile app backends, RESTful APIs
+- Azure Functions - run code in the cloud. complex code is okay
+- Azure Logic Apps - platform to create and run automated workflows similar to capabilities in Azure Functions. low code / no code. orchestrate workflows
+- Azure Container Instances (ACI) - run containers, without creating VMs
+- Azure Container Apps (ACA) - run containerized applications, fully managed, serverless platform. supports scale to zero, Dapr integration, jobs, revision-based traffic management.
+- Azure Kubernetes Service (AKS) - run containerized applications with managed Kubernetes service. large scale orchestration.
+  
+# Virtual Machines
+  1) General Purpose
+  2) Compute optimized
+  3) Memory optimized
+  4) Storage optimized
+  5) GPU
+  6) HPC
+  
+# Azure Batch
+- works well with apps that run independently (parallel workloads)
+- HPC jobs
+- can scale to thousands of VMs
+- you configure and define how many VMs in the pool
+- service runs the jobs, requeues work, identifies failures, and scales down the pool when completed
+  
+# Azure App Service
+- HTTP based service, ideal for web hosted apps, background jobs, mobile backends, RESTful APIs
+- automatic scaling and HA
+- PaaS environment
+- supports development in multiple languages and frameworks
+- built-in load balancing and traffic maangement at global scale with HA
+- deployment slots make continuous deployment easy
+- web apps, API apps, WebJobs
+  
+# Azure Container Instances (ACI)
+- simple apps, task automation, build jobs
+- fast startup, persistant storage, per second billing
+- 
