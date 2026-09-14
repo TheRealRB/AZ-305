@@ -700,4 +700,37 @@ Assess code to identify compatibility and modernization opportuntities: AppCAT f
 # Azure Container Instances (ACI)
 - simple apps, task automation, build jobs
 - fast startup, persistant storage, per second billing
-- 
+- Azure file shares can be mounted directly to a container to retrieve and persist state
+- Linux and Windows
+- container groups contain a collection of containers that get scheduled on the same host machine.
+- consider using a private registry (security)
+  
+# Azure Kubernetes Service (AKS)
+- Kubernetes is an open-source platform for automating deployment, scaling, and management of containerized workloads
+- container management and orchestration at scale
+- automatically update running instances
+- AKS has three cluster managment pricing tiers:
+  1) free - no SLA guarantee (good for dev/test)
+  2) standard - hourly control plane charge with uptime SLA (good for prod)
+  3) premium - 24-month long term support
+- clusters created with ARM templates or Bicep files.
+- by default supports Docker file image format
+  
+# Azure Functions
+- code-first technology
+- event driven code
+- compute on demand
+- automatic scaling up and down
+  
+# Azure Logic Apps
+- create and run automated workflows
+- design-first technology
+- create orchestration with a GUI or by editing config files
+- integrate legacy and modern systems across cloud, on-premises, and hybrid environments
+- 100's of external connectors
+- scales automatically
+  1) consumption plan - multitenant, pay-per-execution
+  2) standard plan - single tenant, dedicated compute resources
+  
+
+
